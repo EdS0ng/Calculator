@@ -7,17 +7,33 @@ function mainFunction(e){
   var displayValue =$('#display').text();
   if ($(e.target).hasClass('operator')){
     displayValue = displayValue + ' '+ e.target.id+' ';
+    if ($('#display').hasClass('enterPressed')){
+      $('#display').removeClass('enterPressed');
+    }
   }else{
-    displayValue = displayValue + e.target.id;
+    if ($('#display').hasClass('enterPressed')){
+      $('#display').empty();
+      $('#display').removeClass('enterPressed');
+      displayValue = e.target.id;
+    }else{
+      displayValue = displayValue+e.target.id;
+    }
   }
  
   if ($(e.target).hasClass('equal')){
     $('#display').text(equal());
     return;
   }
+  if ($(e.target).hasClass('clear')){
+    clear();
+    return;
+  }
   $('#display').text(displayValue);
 }
 
+function clear(){
+  $('#display').empty();
+}
 
 function multiply (a,b){
   return a*b;
@@ -44,7 +60,7 @@ function toNumber(tempArray){
     }
     return number;
   });
-  return temp
+  return temp;
 }
 
 function operationCheck1(temp1){
@@ -88,10 +104,12 @@ function equal(){
   // var currentVal = displayValue.match(/\d\*\d/g);
 
   var displayValue = $('#display').text();
-  var numberOfMultDiv = displayValue.match(/[\*|\/]/g).length;
-  console.log(numberOfMultDiv)
-  var numberOfPlusMinus = displayValue.match(/[-|\+]/g).length;
-  console.log(numberOfPlusMinus)
+  if ((/[\*|\/]/g).test(displayValue)){
+    var numberOfMultDiv = displayValue.match(/[\*|\/]/g).length;
+  }
+  if ((/[-|\+]/g).test(displayValue)){
+    var numberOfPlusMinus = displayValue.match(/[-|\+]/g).length;
+  }
   var temp = displayValue.split(' ');
   var temp1 = toNumber(temp);
   console.log(temp1);
@@ -101,7 +119,6 @@ function equal(){
   for (var i =0;i<numberOfPlusMinus;i++){
     temp1 = operationCheck2(temp1);
   }
-
-  console.log(temp1);
   $('#display').text(temp1);
+  $('#display').addClass('enterPressed');
 }
