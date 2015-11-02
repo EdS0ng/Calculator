@@ -5,30 +5,44 @@ $(document).ready(function(){
 
 function mainFunction(e){
   var displayValue =$('#display').text();
+
   if ($(e.target).hasClass('operator')){
     displayValue = displayValue + ' '+ e.target.id+' ';
     if ($('#display').hasClass('enterPressed')){
       $('#display').removeClass('enterPressed');
     }
-  }else{
-    if ($('#display').hasClass('enterPressed')){
-      $('#display').empty();
-      $('#display').removeClass('enterPressed');
-      displayValue = e.target.id;
-    }else{
-      displayValue = displayValue+e.target.id;
+  }else if (e.target.id==="toggle_pos"){
+    var splittedString = displayValue.split(' ');
+    var indexLast = splittedString.length-1;
+    if (isNaN(splittedString[indexLast])){
+      return;
     }
-  }
- 
-  if ($(e.target).hasClass('equal')){
-    $('#display').text(equal());
+    var last = togglePositive(splittedString[indexLast]);
+    splittedString[indexLast] = last;
+    displayValue=splittedString.join(' ');
+  }else if($(e.target).hasClass('equal')){
+    $('#display').text(equal(displayValue));
     return;
-  }
-  if ($(e.target).hasClass('clear')){
+  }else if ($(e.target).hasClass('clear')){
     clear();
     return;
+  }else if ($('#display').hasClass('enterPressed')){
+    $('#display').empty();
+    $('#display').removeClass('enterPressed');
+    displayValue = e.target.id;
+  }else{
+    displayValue = displayValue+e.target.id;
   }
   $('#display').text(displayValue);
+
+}
+
+
+function togglePositive(value){
+  if (value[0]==='-'){
+    return value.slice(1);
+  }
+  return '-'+value;
 }
 
 function clear(){
@@ -53,10 +67,9 @@ function subtraction(a,b){
 
 function toNumber(tempArray){
   var temp = tempArray.map(function(val){
-    var tempval = val.trim();
-    var number = parseInt(tempval);
+    var number = parseFloat(val);
     if (isNaN(number)){
-      return tempval;
+      return val;
     }
     return number;
   });
@@ -99,25 +112,41 @@ function operationCheck2(temp1){
   }
 }
 
-function equal(){
-  //var reg = /^[0-9.%\^]
-  // var currentVal = displayValue.match(/\d\*\d/g);
-
-  var displayValue = $('#display').text();
-  if ((/[\*|\/]/g).test(displayValue)){
+function equal(displayValue){
+  if ((/[\*\/]/g).test(displayValue)){
     var numberOfMultDiv = displayValue.match(/[\*|\/]/g).length;
   }
-  if ((/[-|\+]/g).test(displayValue)){
-    var numberOfPlusMinus = displayValue.match(/[-|\+]/g).length;
+  if ((/\s[-\+]\s/g).test(displayValue)){
+    var numberOfPlusMinus = displayValue.match(/\s[-|\+]\s/g).length;
   }
+  var percentTest = (/%/g).test(displayValue);
   var temp = displayValue.split(' ');
+
+  if (percentTest){
+    for (var i =0;i<temp.length;i++){
+      if ((/%/g).test(temp[i]) && (temp[i-1]==='+'||temp[i-1]==='-')){
+        $('#display').text('Invalid Expression');
+        return;
+      }else if ((/%/g).test(temp[i])){
+        temp[i] = parseFloat(temp[i])/100;
+      }else{
+        continue;
+      }
+    }
+  }
+
   var temp1 = toNumber(temp);
-  console.log(temp1);
   for (var i =0;i<numberOfMultDiv;i++){
     temp1 = operationCheck1(temp1);
   }
   for (var i =0;i<numberOfPlusMinus;i++){
     temp1 = operationCheck2(temp1);
+  }
+  temp1=Math.round(temp1*100)/100;
+  if (isNaN(temp1)){
+    temp1 = 'Invalid Expression'
+  }else if (temp1 ===Infinity){
+    temp1 = 'Err Divide By Zero';
   }
   $('#display').text(temp1);
   $('#display').addClass('enterPressed');
